@@ -54,6 +54,7 @@ const handleClick = () => {
 const isActiveFilter = computed(() => {
   return (filter: Filter) => filter === selectedFilter.value
 })
+
 </script>
 
 <template>
@@ -93,6 +94,7 @@ const isActiveFilter = computed(() => {
         <TodoItem
           :item="item"
           @handleDelete="(id) => handleTodoDelete(id)"
+          @updateTodoName="(newValue) => (item.name = newValue)"
           v-model:isCompleted="item.isFinished"
           class="bg-blue-400"
         />
