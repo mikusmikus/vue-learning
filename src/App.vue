@@ -8,6 +8,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <nav class="p-3 flex flex-col sm:flex-row md:text-lg gap-4">
         <RouterLink class="hover:text-red-400" to="/">Home</RouterLink>
         <RouterLink class="hover:text-red-400" to="/about">About</RouterLink>
+        <RouterLink class="hover:text-red-400" to="/characters">Characters</RouterLink>
       </nav>
     </div>
   </header>
