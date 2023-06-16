@@ -39,7 +39,7 @@ import CustomInput from './CustomInput.vue'
 
 const isEditing = ref(false)
 const inputValue = ref('')
-const input = ref(null)
+const input = ref<null | HTMLInputElement>(null)
 
 defineOptions({
   inheritAttrs: false
@@ -69,7 +69,7 @@ const handleSave = () => {
 const handleEdit = () => {
   isEditing.value = true
   inputValue.value = props.item.name
-  input.value.focus()
+  input.value?.focus()
 }
 
 const handleCancelEdit = () => {
