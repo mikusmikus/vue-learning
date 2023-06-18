@@ -1,5 +1,6 @@
 <template>
   <div class="">
+    <CustomButton @custom-click="router.back()">Go back</CustomButton>
     <h1>This is an Single Character page</h1>
     <template v-if="character">
       <h1>
@@ -17,9 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import type { Character } from './CharactersView.vue'
+import CustomButton from '@/components/CustomButton.vue'
 
 type EpandedCharacter = Character & {
   location: string
@@ -28,7 +30,7 @@ type EpandedCharacter = Character & {
 }
 
 const route = useRoute()
-// const router = useRouter()
+const router = useRouter()
 
 const url = ref('https://rickandmortyapi.com/api/character/')
 
@@ -55,6 +57,8 @@ const fetchSingleCharacter = async (id: string) => {
 
 onMounted(() => {
   console.log('route', route)
+  console.log('router', router)
+
   if (typeof id === 'string') {
     fetchSingleCharacter(id)
   }

@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CharactersView from '../views/CharactersView.vue'
-import CharacterView from '../views/CharacterView.vue'
+import CharacterView from '@/views/CharacterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +20,11 @@ const router = createRouter({
       path: "/characters/:id",
       name: "singleCharacter",
       component: CharacterView,
+    },
+    {
+      path: "/form",
+      name: "Form",
+      component: () => import('../views/FormView.vue')
     },
     {
       path: '/about',
