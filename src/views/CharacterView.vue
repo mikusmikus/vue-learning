@@ -1,24 +1,30 @@
 <template>
   <div class="">
     <CustomButton @custom-click="router.back()">Go back</CustomButton>
-    <h1>This is an Single Character page</h1>
-    <template v-if="character">
-      <h1>
-        {{ character.name }}
-      </h1>
-      <img :src="character.image" :alt="character.name" />
-      <p>
-        {{ character.status }}
-      </p>
-      <p>
-        {{ character.species }}
-      </p>
-    </template>
+
+    <article v-if="character" class="md:grid md:gap-x-4 md:grid-cols-2 lg:grid-cols-3">
+      <div class="aspect-square rounded-lg overflow-hidden relative">
+        <img
+          src="https://picsum.photos/700/1400"
+          :alt="character.name"
+          class="absolute inset-0 object-cover w-full h-full"
+        />
+      </div>
+
+      <div class="bg-lime-100 lg:col-span-2 flex flex-col justify-center pl-4 py-4">
+        <h1 class="text-lg">{{ character.name }}</h1>
+
+        <p class="font-bold">
+          <span class="w-4 h-4 rounded-full inline-block" :class="statusColor"></span>
+          {{ character.status }}
+        </p>
+      </div>
+    </article>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Character } from './CharactersView.vue'
 import CustomButton from '@/components/CustomButton.vue'
@@ -51,14 +57,26 @@ const fetchSingleCharacter = async (id: string) => {
     origin: data.origin,
     episode: data.episode
   }
-
-  console.log('character', character.value)
 }
 
-onMounted(() => {
-  console.log('route', route)
-  console.log('router', router)
+const statusColor = computed(() => {
+  if (!character.value) {
+    return 'bg-black'
+  }
+  if (character.value.status === 'Alive') {
+    return 'bg-green-500'
+  }
+  if (character.value.status === 'Dead') {
+    return 'bg-red-500'
+  }
+  if (character.value.status === 'unknown') {
+    return 'bg-gray-500'
+  }
 
+  return 'bg-black'
+})
+
+onMounted(() => {
   if (typeof id === 'string') {
     fetchSingleCharacter(id)
   }

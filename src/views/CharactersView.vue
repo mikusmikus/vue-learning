@@ -1,15 +1,34 @@
 <template>
-  <div class="flex justify-end mt-10 mb-4">
+  <div class="flex justify-between mt-10 mb-4">
+    <ul class="flex gap-x-4 items-center">
+      <li v-if="!!filter.statusOptions.length">
+        <select class="border border-red-400 px-2 py-1 rounded" v-model="selectedFilters.status">
+          <option value="">All status</option>
+          <option v-for="status in filter.statusOptions" :key="status" :value="status">
+            {{ status }}
+          </option>
+        </select>
+      </li>
+      <li v-if="!!filter.speciesOptions.length">
+        <select class="border border-red-400 px-2 py-1 rounded" v-model="selectedFilters.species">
+          <option value="">All species</option>
+          <option v-for="specie in filter.speciesOptions" :key="specie" :value="specie">
+            {{ specie }}
+          </option>
+        </select>
+      </li>
+    </ul>
     <CustomButton @custom-click="state.updateTheme()"
       >Toggle theme to {{ state.theme === 'dark' ? 'light' : 'dark' }}</CustomButton
     >
   </div>
+  <div v-if="data.length">test</div>
   <div class="flex justify-between gap-x-4">
     <CustomButton :isDisabled="!info?.prev" @custom-click="handlePrev">Prev</CustomButton>
     <CustomButton :isDisabled="!info?.next" @custom-click="handleNext">Next</CustomButton>
   </div>
   <div v-if="isLoading">Loading...</div>
-  <div v-if="!isLoading && characters.length > 0" class="mb-20">
+  <div v-if="!isLoading && visibleCharacters.length > 0" class="mb-20">
     <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-10">
       <li v-for="character in visibleCharacters" :key="character.id">
         <RouterLink :to="`/characters/${character.id}`">
@@ -22,6 +41,7 @@
             <div class="p-4">
               <h2 class="text-xl font-bold">{{ character.name }}</h2>
               <p class="text-gray-500">{{ character.species }}</p>
+              <p>{{ character.status }}</p>
             </div>
           </article>
         </RouterLink>
@@ -37,12 +57,11 @@
     Try get data again
     <CustomButton @custom-click="getData(url)">Get data</CustomButton>
   </div>
-  {{ count }}
 </template>
 
 <script setup lang="ts">
 import CustomButton from '@/components/CustomButton.vue'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { state } from '../globalState'
 
@@ -62,11 +81,27 @@ type Info = {
   prev: string | null
 }
 
-const CHARACTER_STEP = 10
+type Filter = {
+  statusOptions: string[]
+  speciesOptions: string[]
+}
 
-const count = ref(0)
+const CHARACTER_STEP = 6
+
+const data = ref([])
 
 const characters = ref<Character[]>([])
+
+const filter = reactive<Filter>({
+  statusOptions: [],
+  speciesOptions: []
+})
+
+const selectedFilters = reactive({
+  status: '',
+  species: ''
+})
+
 const isLoading = ref(false)
 const error = ref('')
 // page info state
@@ -91,7 +126,7 @@ const delay = (ms: number) =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
       const random = Math.random()
-      if (random > 0.5) {
+      if (random > 0.99) {
         return reject(new Error('Something went wrong'))
       }
       return resolve(true)
@@ -112,16 +147,36 @@ const getData = async (url: string) => {
 
     info.value = pageInfo
 
-    characters.value = results.map((result) => {
-      return {
+    const charactersList: Character[] = []
+    const statusOptions = [] as string[]
+    const speciesOptions = [] as string[]
+
+    results.forEach((result) => {
+      const status = result.status
+      const species = result.species
+
+      if (!statusOptions.includes(status)) {
+        statusOptions.push(status)
+      }
+      if (!speciesOptions.includes(species)) {
+        speciesOptions.push(species)
+      }
+
+      const singleCharacter = {
         id: result.id,
         name: result.name,
-        status: result.status,
-        species: result.species,
+        status: status,
+        species: species,
         gender: result.gender,
         image: result.image
       }
+      charactersList.push(singleCharacter)
     })
+
+    characters.value = charactersList
+    filter.statusOptions = statusOptions
+    filter.speciesOptions = speciesOptions
+
     isLoading.value = false
     error.value = ''
   } catch (e) {
@@ -157,8 +212,26 @@ const handleNext = () => {
   getData(nextUrl)
 }
 
+// filter by status
+const filteredCharactersByStatus = computed(() => {
+  if (!selectedFilters.status) {
+    return characters.value
+  }
+  return characters.value.filter((character) => character.status === selectedFilters.status)
+})
+
+const filteredCharactersBySpecies = computed(() => {
+  if (!selectedFilters.species) {
+    return filteredCharactersByStatus.value
+  }
+
+  return filteredCharactersByStatus.value.filter(
+    (character) => character.species === selectedFilters.species
+  )
+})
+
 const visibleCharacters = computed(() => {
-  return characters.value.filter((_, index) => {
+  return filteredCharactersBySpecies.value.filter((_, index) => {
     if (index < visibleCharacterCount.value) {
       return true
     }
@@ -167,7 +240,7 @@ const visibleCharacters = computed(() => {
 })
 
 const isLoadMoreVisible = computed(() => {
-  if (visibleCharacterCount.value < characters.value.length) {
+  if (visibleCharacterCount.value < filteredCharactersBySpecies.value.length) {
     return true
   }
   return false
